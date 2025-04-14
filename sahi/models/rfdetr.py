@@ -9,6 +9,7 @@ from rfdetr import RFDETRBase, RFDETRLarge
 
 from sahi.models.base import DetectionModel
 from sahi.prediction import ObjectPrediction
+from sahi.utils.compatibility import fix_full_shape_list, fix_shift_amount_list
 from sahi.utils.torch import empty_cuda_cache, has_torch, select_device
 
 logger = logging.getLogger(__name__)
@@ -111,40 +112,27 @@ class RFDetrDetectionModel(DetectionModel):
         Handles coordinate shifting for sliced inference and category remapping.
         """
         object_prediction_list = []
+        shift_amount_list = fix_shift_amount_list(shift_amount_list)
+        full_shape_list = fix_full_shape_list(full_shape_list)
+        prediction = self._original_predictions
+        bbox = prediction.xyxy  # [xmin, ymin, xmax, ymax]
+        score = prediction.confidence
+        category_id = prediction.class_id
+        detections_nbr = bbox.shape[0]
+        for image_ind in range(detections_nbr):
+          shift_amount = shift_amount_list[image_ind]
+          full_shape = None if full_shape_list is None else full_shape_list[image_ind]
 
-        for shift_amount, full_shape in zip(shift_amount_list, full_shape_list or []):
-            for prediction in self._original_predictions:
-                # Extract prediction components
-                bbox = prediction['bbox']  # [xmin, ymin, xmax, ymax]
-                score = prediction['score']
-                category_id = prediction['category_id']
 
-                # Apply coordinate shift
-                shifted_bbox = [
-                    bbox[0] + shift_amount[0],
-                    bbox[1] + shift_amount[1],
-                    bbox[2] + shift_amount[0],
-                    bbox[3] + shift_amount[1],
-                ]
-
-                # Process category information
-                if self.category_mapping:
-                    category_name = self.category_mapping.get(str(category_id), str(category_id))
-                else:
-                    category_name = str(category_id)
-
-                if self.category_remapping:
-                    category_id = self.category_remapping.get(category_name, category_id)
-
-                # Create ObjectPrediction instance
-                object_prediction = ObjectPrediction(
-                    bbox=shifted_bbox,
-                    score=score,
-                    category_id=int(category_id),
-                    category_name=category_name,
+        # Create ObjectPrediction instance
+          object_prediction = ObjectPrediction(
+                    bbox=bbox[image_ind],
+                    score=score[image_ind],
+                    category_id=int(category_id[image_ind]),
+                    category_name=self.category_mapping[category_id[image_ind]],
                     shift_amount=shift_amount,
                     full_shape=full_shape,
                 )
-                object_prediction_list.append(object_prediction)
+          object_prediction_list.append(object_prediction)
 
         self._object_prediction_list_per_image = [object_prediction_list]
