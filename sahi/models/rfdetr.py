@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 from rfdetr import RFDETRBase, RFDETRLarge
 
+from sahi.models.base import DetectionModel
 from sahi.prediction import ObjectPrediction
 from sahi.utils.torch import empty_cuda_cache, has_torch, select_device
 
