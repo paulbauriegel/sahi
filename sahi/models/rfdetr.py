@@ -124,9 +124,10 @@ class RFDetrDetectionModel(DetectionModel):
         category_ids = prediction.class_id
         detections_nbr = bbox.shape[0]
         for image_ind in range(detections_nbr):
-          shift_amount = shift_amount_list[image_ind]
-          full_shape = None if full_shape_list is None else full_shape_list[image_ind]
+          shift_amount = shift_amount_list[0]
+          full_shape = None if full_shape_list is None else full_shape_list[0]
           category_id=int(category_ids[image_ind])
+
           # Create ObjectPrediction instance
           object_prediction = ObjectPrediction(
                     bbox=bbox[image_ind],
