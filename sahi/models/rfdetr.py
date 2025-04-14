@@ -80,7 +80,7 @@ class RFDetrDetectionModel(DetectionModel):
         should be initialized and set to self.model.
         (self.model_path, self.config_path, and self.device should be utilized)
         """
-        self.model = RFDETRLarge(resolution=728) # self.model_path
+        self.model = RFDETRLarge(resolution=self.image_size) # self.model_path
 
     def set_model(self, model: Any, **kwargs):
         """
@@ -148,6 +148,3 @@ class RFDetrDetectionModel(DetectionModel):
                 object_prediction_list.append(object_prediction)
 
         self._object_prediction_list_per_image = [object_prediction_list]
-
-
-
