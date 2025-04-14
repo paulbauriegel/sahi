@@ -6,6 +6,7 @@ from sahi.utils.file import import_model_class
 MODEL_TYPE_TO_MODEL_CLASS_NAME = {
     "ultralytics": "UltralyticsDetectionModel",
     "rtdetr": "RTDetrDetectionModel",
+    "rfdetr": "RFDetrDetectionModel",
     "mmdet": "MmdetDetectionModel",
     "yolov5": "Yolov5DetectionModel",
     "detectron2": "Detectron2DetectionModel",
