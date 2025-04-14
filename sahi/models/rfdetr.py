@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 from rfdetr import RFDETRBase, RFDETRLarge
+from rfdetr.util.coco_classes import COCO_CLASSES
 
 from sahi.models.base import DetectionModel
 from sahi.prediction import ObjectPrediction
@@ -69,6 +70,9 @@ class RFDetrDetectionModel(DetectionModel):
             else:
                 self.load_model()
 
+        if self.category_mapping is None:
+            self.category_mapping = COCO_CLASSES
+
     def check_dependencies(self) -> None:
         """
         This function can be implemented to ensure model dependencies are installed.
@@ -81,7 +85,7 @@ class RFDetrDetectionModel(DetectionModel):
         should be initialized and set to self.model.
         (self.model_path, self.config_path, and self.device should be utilized)
         """
-        self.model = RFDETRLarge(resolution=self.image_size) # self.model_path
+        self.model = RFDETRLarge(resolution=728) # self.model_path
 
     def set_model(self, model: Any, **kwargs):
         """
@@ -117,19 +121,18 @@ class RFDetrDetectionModel(DetectionModel):
         prediction = self._original_predictions
         bbox = prediction.xyxy  # [xmin, ymin, xmax, ymax]
         score = prediction.confidence
-        category_id = prediction.class_id
+        category_ids = prediction.class_id
         detections_nbr = bbox.shape[0]
         for image_ind in range(detections_nbr):
           shift_amount = shift_amount_list[image_ind]
           full_shape = None if full_shape_list is None else full_shape_list[image_ind]
-
-
-        # Create ObjectPrediction instance
+          category_id=int(category_ids[image_ind])
+          # Create ObjectPrediction instance
           object_prediction = ObjectPrediction(
                     bbox=bbox[image_ind],
                     score=score[image_ind],
-                    category_id=int(category_id[image_ind]),
-                    category_name=self.category_mapping[category_id[image_ind]],
+                    category_id=category_id,
+                    category_name=self.category_mapping[category_id],
                     shift_amount=shift_amount,
                     full_shape=full_shape,
                 )
